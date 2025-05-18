@@ -17,11 +17,29 @@
 
 use clap::Parser;
 use std::path::PathBuf;
+const LONG_ABOUT: &str = "\
+Copyright (C) 2025  Chianti GALLY
 
-#[derive(Parser)]
-#[command(version, about, long_about = None)]
-#[derive(Debug)]
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+";
+
+#[derive(Parser, Debug)]
+#[command(
+    version,
+    about = "Add watermark to images safely, and optionally generate PDFs.",
+    long_about = LONG_ABOUT
+)]
 pub struct Cli {
     /// Input image file/directory
     #[arg(value_hint = clap::ValueHint::FilePath)]

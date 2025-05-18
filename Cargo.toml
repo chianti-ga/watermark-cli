@@ -8,6 +8,7 @@ repository = "https://github.com/chianti-ga/watermark-cli"
 exclude = [
     "exemples/*"
 ]
+authors = ["Chianti GALLY"]
 
 [dependencies]
 ab_glyph = "0.2.29"
