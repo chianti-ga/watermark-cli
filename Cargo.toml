@@ -5,6 +5,9 @@ version = "1.0.0"
 edition = "2024"
 license = "GPL-3"
 repository = "https://github.com/chianti-ga/watermark-cli"
+exclude = [
+    "exemples/*"
+]
 
 [dependencies]
 ab_glyph = "0.2.29"
