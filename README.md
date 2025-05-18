@@ -25,8 +25,6 @@ cd watermark-cli
 cargo build --release
 ```
 
-The compiled binary will be available at . `target/release/watermark-cli`
-
 ## Usage
 
 ``` bash
