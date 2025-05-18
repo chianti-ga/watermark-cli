@@ -15,6 +15,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+mod cli;
+
+use crate::cli::Cli;
 use ab_glyph::FontRef;
 use clap::Parser;
 use colored::Colorize;
@@ -26,63 +29,20 @@ use imageproc::image::codecs::jpeg::JpegEncoder;
 use imageproc::image::codecs::png::PngEncoder;
 use imageproc::image::codecs::webp::WebPEncoder;
 use imageproc::image::imageops::overlay;
-use imageproc::image::ImageEncoder;
 use indicatif::{ProgressBar, ProgressStyle};
 use log::{error, info};
 use printpdf::{Mm, Op, PdfDocument, PdfPage, PdfSaveOptions, RawImage, XObjectId, XObjectTransform};
 use rayon::iter::IntoParallelRefIterator;
 use rayon::iter::ParallelIterator;
 use std::error::Error;
-use std::fs;
 use std::fs::File;
 use std::io::BufWriter;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
-
-#[derive(Parser)]
-#[command(version, about, long_about = None)]
-#[derive(Debug)]
-struct Cli {
-    /// Input image file/directory
-    input_path: PathBuf,
-
-    /// Watermark text
-    watermark: String,
-
-    /// JPEG quality 1–100
-    #[arg(default_value_t = 90)]
-    compression: u8,
-
-    /// Vertical spacing between watermark
-    #[arg(default_value = "1.5", short, long)]
-    space_scale: f32,
-
-    /// Recursively apply watermark to all images in the specified directory
-    #[arg(short, long, action)]
-    recursive: bool,
-
-    /// Create PDF of watermarked image(s) instead of an image
-    #[arg(long, action)]
-    pdf: bool,
-
-    /// Pattern of watermark
-    #[arg(short, long, default_value = "diagonal")]
-    pattern: Pattern,
-}
-
-#[derive(Debug, Clone, clap::ValueEnum)]
-enum Pattern {
-    Diagonal,
-    Horizontal,
-    Vertical,
-    Random,
-    CrossDiagonal,
-}
+use std::fs;
 
 fn main() {
     let cli: Cli = Cli::parse();
-
-    println!("{:?}", cli);
     let start_time = Instant::now();
 
     if cli.recursive && cli.input_path.is_dir() {

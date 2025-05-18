@@ -43,7 +43,8 @@ watermark-cli <INPUT_PATH> <WATERMARK> [OPTIONS]
 - `-r, --recursive` - Recursively apply watermark to all images in the specified directory
 - `-p, --pdf` - Create PDF of watermarked image(s) instead of an image
 - `-p, --pattern <PATTERN>` - Pattern of
-  watermark [default: diagonal] [possible values: diagonal, horizontal, vertical, random, cross-diagonal]
+  watermark [default: diagonal] [possible values: diagonal, horizontal, vertical, random, cross-diagonal] (NOT
+  IMPLEMENTED AT THE MOMENT)
 - `-h, --help` - Print help
 - `-V, --version` - Print version
 
@@ -82,6 +83,11 @@ watermark-cli --space-scale 2.0 --compression 80 path/to/image.jpg "SAMPLE"
 - JPEG/JPG
 - PNG
 - WebP
+
+## TODO:
+
+- PDF output while using recursive processing
+- Custom PDF dimensions
 
 ## License
 
