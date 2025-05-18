@@ -6,7 +6,7 @@ arch=('x86_64')
 url="https://github.com/chianti-ga/watermark-cli"
 license=('GPL3')
 depends=('gcc-libs')
-#makedepends=('rust' 'cargo' 'git')
+makedepends=('rust' 'cargo' 'git')
 source=("$pkgname::git+$url.git#tag=v$pkgver")
 sha256sums=('SKIP')
 
