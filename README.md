@@ -19,6 +19,12 @@ Designed to prevent identity theft and unauthorized copying of official document
 
 - Rust and Cargo installed on your system
 
+### Install from crates.io
+
+``` bash
+cargo install watermark-cli
+```
+
 ### Building from source
 
 ``` bash
