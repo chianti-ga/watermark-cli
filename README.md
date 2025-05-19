@@ -1,7 +1,9 @@
 # Watermark CLI
 
 A command-line tool for adding watermarks to images and PDFs with support for batch processing and various watermark patterns.
---
+Designed to prevent identity theft and unauthorized copying of official documents through visible watermarking.
+
+---
 
 ## Features
 
@@ -39,6 +41,7 @@ watermark-cli <INPUT_PATH> <WATERMARK> [OPTIONS]
 ### Options
 
 - `-c, --compression <COMPRESSION>` - JPEG quality (1-100) [default: 90]
+- `-t, --text-scale <TEXT_SCALE>` - Watermark text scale [default: 0.05"]
 - `-s, --space-scale <SPACE_SCALE>` - Vertical spacing between watermarks [default: 1.5]
 - `-r, --recursive` - Recursively apply watermark to all images in the specified directory
 - `-p, --pdf` - Create PDF of watermarked image(s) instead of an image
@@ -58,7 +61,15 @@ watermark-cli sample.png "ONLY FOR IDENTITY VERIFICATION BY RENTAL AGENCY"
 
 | Original file                         | Watermarked file                                   |
 |---------------------------------------|----------------------------------------------------|
-| ![Original file](exemples/sample.png) | ![Watermarked file](exemples/sample_watermark.png) |
+| ![Original file](exemples/sample.jpg) | ![Watermarked file](exemples/sample_watermark.jpg) |
+
+* Image from ANTS/France Titres (https://ants.gouv.fr/)
+
+Customize watermark height/scale and compression:
+
+``` bash
+watermark-cli --text-scale 2.0 path/to/image.jpg "SAMPLE"
+```
 
 Process all images in a directory recursively with a custom pattern:
 
@@ -84,7 +95,7 @@ watermark-cli --space-scale 2.0 --compression 80 path/to/image.jpg "SAMPLE"
 - PNG
 - WebP
 
-## TODO:
+## TODO
 
 - PDF output while using recursive processing
 - Custom PDF dimensions

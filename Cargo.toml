@@ -9,6 +9,8 @@ exclude = [
     "exemples/*"
 ]
 authors = ["Chianti GALLY"]
+keywords = ["watermark", "images", "pdf", "cli", "identity-theft"]
+categories = ["command-line-utilities"]
 
 [dependencies]
 ab_glyph = "0.2.29"

@@ -18,6 +18,10 @@
 use clap::Parser;
 use std::path::PathBuf;
 const LONG_ABOUT: &str = "\
+A command-line tool for adding watermarks to images and PDFs with support for batch processing and various watermark patterns.
+Designed to prevent identity theft and unauthorized copying of official documents through visible watermarking.
+
+
 Copyright (C) 2025  Chianti GALLY
 
 This program is free software: you can redistribute it and/or modify
@@ -37,7 +41,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #[derive(Parser, Debug)]
 #[command(
     version,
-    about = "Add watermark to images safely, and optionally generate PDFs.",
+    about = "A command-line tool for adding watermarks to images and PDFs with support for batch processing and various watermark patterns.\nDesigned to prevent identity theft and unauthorized copying of official documents through visible watermarking.",
     long_about = LONG_ABOUT
 )]
 pub struct Cli {
@@ -55,6 +59,10 @@ pub struct Cli {
     /// Vertical spacing between watermark
     #[arg(default_value = "1.5", short, long)]
     pub space_scale: f32,
+
+    /// Watermark text scale
+    #[arg(default_value = "0.05", short, long)]
+    pub text_scale: f32,
 
     /// Recursively apply watermark to all images in the specified directory
     #[arg(short, long, action)]

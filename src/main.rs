@@ -35,11 +35,11 @@ use printpdf::{Mm, Op, PdfDocument, PdfPage, PdfSaveOptions, RawImage, XObjectId
 use rayon::iter::IntoParallelRefIterator;
 use rayon::iter::ParallelIterator;
 use std::error::Error;
+use std::fs;
 use std::fs::File;
 use std::io::BufWriter;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
-use std::fs;
 
 fn main() {
     let cli: Cli = Cli::parse();
@@ -65,7 +65,7 @@ fn process_single_file(cli: &Cli) {
 
     println!("{}", format!("Processing image: {}", input_file.display()).blue());
 
-    if let Err(e) = add_watermark(input_file, &cli.watermark, &output_file, &cli.compression, &cli.space_scale, false) {
+    if let Err(e) = add_watermark(input_file, &cli.watermark, &output_file, &cli.compression, &cli.text_scale, &cli.space_scale, false) {
         eprintln!("{}", format!("Error processing image: {}", e).red());
         std::process::exit(1);
     }
@@ -91,7 +91,7 @@ fn process_directory(cli: &Cli) {
         let new_name: String = format!("{}_watermark.{}", file_stem, extension);
         let output_file: PathBuf = file.with_file_name(new_name);
 
-        if let Err(e) = add_watermark(file, &cli.watermark, &output_file, &cli.compression, &cli.space_scale, false) {
+        if let Err(e) = add_watermark(file, &cli.watermark, &output_file, &cli.compression, &cli.text_scale, &cli.space_scale, false) {
             error!("{}", format!("Error processing {}: {}", file.display(), e).red());
         } else {
             info!("{}", format!("Image processed successfully: {}", output_file.display()).green());
@@ -119,7 +119,7 @@ fn collect_image_files(dir: &Path) -> Vec<PathBuf> {
     files
 }
 
-fn add_watermark(image_path: &Path, watermark_text: &str, output_path: &Path, compression: &u8, space_scale: &f32, to_pdf: bool) -> Result<(), Box<dyn Error>> {
+fn add_watermark(image_path: &Path, watermark_text: &str, output_path: &Path, compression: &u8, text_scale: &f32, space_scale: &f32, to_pdf: bool) -> Result<(), Box<dyn Error>> {
     let mut img: DynamicImage = image::open(image_path)?;
     let img_height: u32 = img.height();
     let img_width: u32 = img.width();
@@ -133,10 +133,10 @@ fn add_watermark(image_path: &Path, watermark_text: &str, output_path: &Path, co
 
     let mut canva: ImageBuffer<Rgba<u8>, Vec<u8>> = ImageBuffer::new(img.width() * 2, img_height * 2);
 
-    let scale: f32 = img_height as f32 * 0.025;
+    let scale: f32 = if img_height as f32 * text_scale <= 0.0 { 0.05 } else { img_height as f32 * text_scale };
     let space_y: f32 = if scale * space_scale <= 1.0 { 1.0 } else { scale * space_scale };
 
-    let text_color = Rgba([128u8, 128u8, 128u8, 128u8]);
+    let text_color = Rgba([128u8, 128u8, 128u8, 150u8]);
 
     let mut long_watermark: String = String::from(watermark_text);
     long_watermark.push_str("\t");
