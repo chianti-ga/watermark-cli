@@ -17,7 +17,7 @@
 
 mod cli;
 
-use crate::cli::Cli;
+use crate::cli::{check_update, Cli};
 use ab_glyph::FontRef;
 use clap::Parser;
 use colored::Colorize;
@@ -42,7 +42,10 @@ use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 
 fn main() {
+    check_update();
+    
     let cli: Cli = Cli::parse();
+
     let start_time = Instant::now();
 
     if cli.recursive && cli.input_path.is_dir() {
