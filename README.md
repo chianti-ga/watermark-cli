@@ -7,9 +7,9 @@ Designed to prevent identity theft and unauthorized copying of official document
 
 ## Features
 
-- Apply text watermarks to images in various patterns (diagonal, horizontal, vertical, random, cross-diagonal)
-- Process single images/pdf or recursively process directories (pdf output isn't available for batch processing)
-- Convert watermarked images to PDF format
+- Apply text watermarks to images in various patterns (diagonal, horizontal, vertical, random, cross-diagonal) (PDF
+  support is planned for future releases but not currently implemented)
+- Process single images or recursively process directories
 - Parallel processing for batch operations using Rayon
 - Customizable watermark spacing and JPEG compression quality
 
@@ -50,7 +50,6 @@ watermark-cli <INPUT_PATH> <WATERMARK> [OPTIONS]
 - `-t, --text-scale <TEXT_SCALE>` - Watermark text scale [default: 0.05"]
 - `-s, --space-scale <SPACE_SCALE>` - Vertical spacing between watermarks [default: 1.5]
 - `-r, --recursive` - Recursively apply watermark to all images in the specified directory
-- `-p, --pdf` - Create PDF of watermarked image(s) instead of an image
 - `-p, --pattern <PATTERN>` - Pattern of
   watermark [default: diagonal] [possible values: diagonal, horizontal, vertical, random, cross-diagonal] (NOT
   IMPLEMENTED AT THE MOMENT)
@@ -100,11 +99,6 @@ watermark-cli --space-scale 2.0 --compression 80 path/to/image.jpg "SAMPLE"
 - JPEG/JPG
 - PNG
 - WebP
-
-## TODO
-
-- PDF output while using recursive processing
-- Custom PDF dimensions
 
 ## License
 

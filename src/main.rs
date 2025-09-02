@@ -14,7 +14,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 mod cli;
 
 use crate::cli::{check_update, Cli};
@@ -29,9 +28,9 @@ use imageproc::image::codecs::jpeg::JpegEncoder;
 use imageproc::image::codecs::png::PngEncoder;
 use imageproc::image::codecs::webp::WebPEncoder;
 use imageproc::image::imageops::overlay;
+use imageproc::image::{ColorType, ImageFormat};
 use indicatif::{ProgressBar, ProgressStyle};
 use log::{error, info};
-use printpdf::{Mm, Op, PdfDocument, PdfPage, PdfSaveOptions, RawImage, XObjectId, XObjectTransform};
 use rayon::iter::IntoParallelRefIterator;
 use rayon::iter::ParallelIterator;
 use std::error::Error;
@@ -43,10 +42,10 @@ use std::time::{Duration, Instant};
 
 fn main() {
     check_update();
-    
+
     let cli: Cli = Cli::parse();
 
-    let start_time = Instant::now();
+    let start_time: Instant = Instant::now();
 
     if cli.recursive && cli.input_path.is_dir() {
         process_directory(&cli);
@@ -61,14 +60,14 @@ fn main() {
 fn process_single_file(cli: &Cli) {
     let input_file: &PathBuf = &cli.input_path;
     let file_stem: &str = input_file.file_stem().and_then(|s| s.to_str()).unwrap_or("output");
-    let extension: &str = if cli.pdf { "pdf" } else { input_file.extension().and_then(|s| s.to_str()).unwrap_or("jpeg") };
+    let extension: &str = input_file.extension().and_then(|s| s.to_str()).unwrap_or("jpeg");
 
     let new_name: String = format!("{}_watermark.{}", file_stem, extension);
     let output_file: PathBuf = input_file.with_file_name(new_name);
 
     println!("{}", format!("Processing image: {}", input_file.display()).blue());
 
-    if let Err(e) = add_watermark(input_file, &cli.watermark, &output_file, &cli.compression, &cli.text_scale, &cli.space_scale, false) {
+    if let Err(e) = add_watermark(input_file, &cli.watermark, &output_file, &cli.compression, &cli.text_scale, &cli.space_scale) {
         eprintln!("{}", format!("Error processing image: {}", e).red());
         std::process::exit(1);
     }
@@ -90,11 +89,11 @@ fn process_directory(cli: &Cli) {
 
     files.par_iter().for_each(|file| {
         let file_stem: &str = file.file_stem().and_then(|s| s.to_str()).unwrap_or("output");
-        let extension: &str = if cli.pdf { "pdf" } else { file.extension().and_then(|s| s.to_str()).unwrap_or("jpeg") };
+        let extension: &str = file.extension().and_then(|s| s.to_str()).unwrap_or("jpeg");
         let new_name: String = format!("{}_watermark.{}", file_stem, extension);
         let output_file: PathBuf = file.with_file_name(new_name);
 
-        if let Err(e) = add_watermark(file, &cli.watermark, &output_file, &cli.compression, &cli.text_scale, &cli.space_scale, false) {
+        if let Err(e) = add_watermark(file, &cli.watermark, &output_file, &cli.compression, &cli.text_scale, &cli.space_scale) {
             error!("{}", format!("Error processing {}: {}", file.display(), e).red());
         } else {
             info!("{}", format!("Image processed successfully: {}", output_file.display()).green());
@@ -122,7 +121,7 @@ fn collect_image_files(dir: &Path) -> Vec<PathBuf> {
     files
 }
 
-fn add_watermark(image_path: &Path, watermark_text: &str, output_path: &Path, compression: &u8, text_scale: &f32, space_scale: &f32, to_pdf: bool) -> Result<(), Box<dyn Error>> {
+fn add_watermark(image_path: &Path, watermark_text: &str, output_path: &Path, compression: &u8, text_scale: &f32, space_scale: &f32) -> Result<(), Box<dyn Error>> {
     let mut img: DynamicImage = image::open(image_path)?;
     let img_height: u32 = img.height();
     let img_width: u32 = img.width();
@@ -145,12 +144,18 @@ fn add_watermark(image_path: &Path, watermark_text: &str, output_path: &Path, co
     long_watermark.push_str("\t");
     long_watermark = long_watermark.repeat(canva.width() as usize / long_watermark.len());
 
-    for i in 0..(canva.height() / space_y as u32) {
+    let space_y_u32 = space_y as u32;
+    let num_iterations = (canva.height() / space_y_u32) + 1;
+    for i in 0..num_iterations {
+        let y_pos = (i * space_y_u32) as i32;
+        if y_pos >= canva.height() as i32 {
+            break;
+        }
         draw_text_mut(
             &mut canva,
             text_color,
             0,
-            (i * space_y as u32) as i32,
+            y_pos,
             scale,
             &font,
             &long_watermark,
@@ -161,35 +166,14 @@ fn add_watermark(image_path: &Path, watermark_text: &str, output_path: &Path, co
 
     overlay(&mut img, &canva, -((img_width / 2) as i64), -((img_height / 2) as i64));
 
-    if to_pdf {
-        fs::write(output_path, make_pdf(img))?;
-    } else {
-        let mut writer: BufWriter<File> = BufWriter::new(File::create(output_path)?);
-        match image_path.extension().and_then(|e| e.to_str()) {
-            Some("jpg") | Some("jpeg") => img.write_with_encoder(JpegEncoder::new_with_quality(&mut writer, *compression))?,
-            Some("png") => img.write_with_encoder(PngEncoder::new(&mut writer))?,
-            Some("webp") => img.write_with_encoder(WebPEncoder::new_lossless(&mut writer))?,
-            _ => img.write_with_encoder(JpegEncoder::new_with_quality(&mut writer, *compression))?,
-        };
-    }
+    let mut writer: BufWriter<File> = BufWriter::new(File::create(output_path)?);
+    match image_path.extension().and_then(|e| e.to_str()) {
+        Some("jpg") | Some("jpeg") => img.write_with_encoder(JpegEncoder::new_with_quality(&mut writer, *compression))?,
+        Some("png") => img.write_with_encoder(PngEncoder::new(&mut writer))?,
+        Some("webp") => {
+            img.write_with_encoder(WebPEncoder::new_lossless(&mut writer))?
+        }
+        _ => img.write_with_encoder(JpegEncoder::new_with_quality(&mut writer, *compression))?,
+    };
     Ok(())
-}
-
-fn make_pdf(image: DynamicImage) -> Vec<u8> {
-    let mut doc: PdfDocument = PdfDocument::new("My first PDF");
-    let mut warnings: Vec<printpdf::PdfWarnMsg> = Vec::new();
-
-    let raw_image: RawImage = RawImage::decode_from_bytes(image.as_bytes(), &mut warnings)
-        .expect("Failed to decode image");
-    let image_xobject_id: XObjectId = doc.add_image(&raw_image);
-
-    let page1_contents = vec![
-        Op::UseXobject {
-            id: image_xobject_id.clone(),
-            transform: XObjectTransform::default(),
-        },
-    ];
-
-    let page1: PdfPage = PdfPage::new(Mm(210.0), Mm(297.0), page1_contents);
-    doc.with_pages(vec![page1]).save(&PdfSaveOptions::default(), &mut warnings)
 }

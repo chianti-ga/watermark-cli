@@ -1,6 +1,6 @@
 [package]
 name = "watermark-cli"
-description = "A command-line tool for adding watermarks to images and PDFs with support for batch processing and various watermark patterns"
+description = "A command-line tool for adding watermarks to images with support for batch processing and various watermark patterns"
 version = "1.1.2"
 edition = "2024"
 license = "GPL-3.0-only"
@@ -18,9 +18,8 @@ clap = { version = "4.5.38", features = ["default", "unicode", "derive", "usage"
 imageproc = { version = "0.25.0", features = ["default", "rayon"] }
 rayon = "1.10.0"
 log = "0.4.27"
-indicatif = "0.17.8"
+indicatif = "0.18.0"
 colored = "3.0.0"
-printpdf = { version = "0.8.2", features = ["default", "rayon", "jpeg", "kuchiki"] }
 reqwest = { version = "0.12.18", features = ["json", "blocking"] }
 serde = { version = "1.0.219", features = ["derive"] }
 

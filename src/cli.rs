@@ -20,7 +20,7 @@ use std::fs;
 use std::path::PathBuf;
 
 const LONG_ABOUT: &str = "\
-A command-line tool for adding watermarks to images and PDFs with support for batch processing and various watermark patterns.
+A command-line tool for adding watermarks to images with support for batch processing and various watermark patterns.
 Designed to prevent identity theft and unauthorized copying of official documents through visible watermarking.
 
 
@@ -43,7 +43,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #[derive(Parser, Debug)]
 #[command(
     version,
-    about = "A command-line tool for adding watermarks to images and PDFs with support for batch processing and various watermark patterns.\nDesigned to prevent identity theft and unauthorized copying of official documents through visible watermarking.",
+    about = "A command-line tool for adding watermarks to images with support for batch processing and various watermark patterns.\nDesigned to prevent identity theft and unauthorized copying of official documents through visible watermarking.",
     long_about = LONG_ABOUT
 )]
 pub struct Cli {
@@ -69,10 +69,6 @@ pub struct Cli {
     /// Recursively apply watermark to all images in the specified directory
     #[arg(short, long, action)]
     pub recursive: bool,
-
-    /// Create PDF of watermarked image(s) instead of an image
-    #[arg(long, action)]
-    pub pdf: bool,
 
     /// Pattern of watermark
     #[arg(short, long, default_value = "diagonal")]
