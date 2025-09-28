@@ -15,8 +15,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 mod cli;
+#[cfg(feature = "auto-update")]
+use crate::cli::check_update;
 
-use crate::cli::{check_update, Cli};
+use crate::cli::Cli;
 use ab_glyph::FontRef;
 use clap::Parser;
 use colored::Colorize;
@@ -41,6 +43,7 @@ use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 
 fn main() {
+    #[cfg(feature = "auto-update")]
     check_update();
 
     let cli: Cli = Cli::parse();

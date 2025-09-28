@@ -89,7 +89,7 @@ pub enum Pattern {
 struct Tag {
     name: String,
 }
-
+#[cfg(feature = "auto-update")]
 pub fn check_update() {
     let config_file = std::env::home_dir().unwrap_or_default().join(".watermark-cli");
     if !config_file.exists() {
