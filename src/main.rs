@@ -30,7 +30,6 @@ use imageproc::image::codecs::jpeg::JpegEncoder;
 use imageproc::image::codecs::png::PngEncoder;
 use imageproc::image::codecs::webp::WebPEncoder;
 use imageproc::image::imageops::overlay;
-use imageproc::image::{ColorType, ImageFormat};
 use indicatif::{ProgressBar, ProgressStyle};
 use log::{error, info};
 use rayon::iter::IntoParallelRefIterator;
