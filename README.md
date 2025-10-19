@@ -41,7 +41,7 @@ watermark-cli <INPUT_PATH> <WATERMARK> [OPTIONS]
 
 ### Arguments
 
-- `<INPUT_PATH>` - Path to the input image file or directory
+- `<INPUT_PATH>` - Path to the input image/pdf file or directory
 - `<WATERMARK>` - Text to use as watermark
 
 ### Options
@@ -80,12 +80,6 @@ Process all images in a directory recursively with a custom pattern:
 
 ``` bash
 watermark-cli --recursive --pattern horizontal path/to/directory/ "Confidential"
-```
-
-Create a PDF with watermarked images:
-
-``` bash
-watermark-cli --pdf path/to/image.jpg "DRAFT"
 ```
 
 Customize watermark spacing and compression:

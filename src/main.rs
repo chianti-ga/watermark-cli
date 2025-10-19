@@ -15,10 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 mod cli;
+mod pdf;
+
 #[cfg(feature = "auto-update")]
 use crate::cli::check_update;
 
 use crate::cli::Cli;
+use crate::pdf::convert_to_image;
 use ab_glyph::FontRef;
 use clap::Parser;
 use colored::Colorize;
@@ -50,7 +53,7 @@ fn main() {
     let start_time: Instant = Instant::now();
 
     if cli.recursive && cli.input_path.is_dir() {
-        process_directory(&cli);
+        process_directory(&cli, None);
     } else {
         process_single_file(&cli);
     }
@@ -63,6 +66,11 @@ fn process_single_file(cli: &Cli) {
     let input_file: &PathBuf = &cli.input_path;
     let file_stem: &str = input_file.file_stem().and_then(|s| s.to_str()).unwrap_or("output");
     let extension: &str = input_file.extension().and_then(|s| s.to_str()).unwrap_or("jpeg");
+
+    if extension.to_lowercase() == "pdf" {
+        process_pdf(cli);
+        return;
+    }
 
     let new_name: String = format!("{}_watermark.{}", file_stem, extension);
     let output_file: PathBuf = input_file.with_file_name(new_name);
@@ -77,11 +85,45 @@ fn process_single_file(cli: &Cli) {
     println!("{}", format!("Image processed successfully: {}", output_file.display()).green());
 }
 
-fn process_directory(cli: &Cli) {
+fn process_pdf(cli: &Cli) {
+    let input_file: &PathBuf = &cli.input_path;
+    let file_stem: &str = input_file.file_stem().and_then(|s| s.to_str()).unwrap_or("output");
+    let extension: &str = input_file.extension().and_then(|s| s.to_str()).unwrap_or("pdf");
+    let temp_dir: PathBuf = std::env::temp_dir().join("watermark-cli").join(format!("{}_{}", file_stem, extension));
+    fs::create_dir_all(&temp_dir).unwrap();
+
+    println!("{}", format!("Processing PDF: {}", input_file.display()).blue());
+
+    convert_to_image(input_file, &temp_dir);
+
+    let mut output_dir: PathBuf = cli.input_path.parent().unwrap().to_path_buf();
+    output_dir.push(cli.input_path.file_stem().unwrap());
+    fs::create_dir_all(&output_dir).unwrap();
+
+    process_directory(
+        &Cli {
+            input_path: temp_dir.clone(),
+            watermark: cli.watermark.clone(),
+            compression: cli.compression,
+            space_scale: cli.space_scale,
+            text_scale: cli.text_scale,
+            recursive: cli.recursive,
+            pattern: cli.pattern.clone(),
+        },
+        Some(output_dir.as_path()),
+    );
+
+    fs::remove_dir_all(&temp_dir).unwrap();
+}
+fn process_directory(cli: &Cli, output_dir: Option<&Path>) {
     let files: Vec<PathBuf> = collect_image_files(&cli.input_path);
     let total_files: usize = files.len();
 
     println!("{}", format!("Processing {} images found", total_files).blue());
+
+    if let Some(dir) = output_dir {
+        fs::create_dir_all(dir).unwrap();
+    }
 
     let pb: ProgressBar = ProgressBar::new(total_files as u64);
     pb.set_style(ProgressStyle::default_bar()
@@ -92,8 +134,13 @@ fn process_directory(cli: &Cli) {
     files.par_iter().for_each(|file| {
         let file_stem: &str = file.file_stem().and_then(|s| s.to_str()).unwrap_or("output");
         let extension: &str = file.extension().and_then(|s| s.to_str()).unwrap_or("jpeg");
+
         let new_name: String = format!("{}_watermark.{}", file_stem, extension);
-        let output_file: PathBuf = file.with_file_name(new_name);
+        let output_file: PathBuf = if let Some(dir) = output_dir {
+            dir.join(new_name)
+        } else {
+            file.with_file_name(new_name)
+        };
 
         if let Err(e) = add_watermark(file, &cli.watermark, &output_file, &cli.compression, &cli.text_scale, &cli.space_scale) {
             error!("{}", format!("Error processing {}: {}", file.display(), e).red());
@@ -114,7 +161,7 @@ fn collect_image_files(dir: &Path) -> Vec<PathBuf> {
             if path.is_dir() {
                 files.extend(collect_image_files(&path));
             } else if let Some(extension) = path.extension().and_then(|e| e.to_str()) {
-                if ["jpg", "jpeg", "png", "webp"].contains(&extension.to_lowercase().as_str()) {
+                if ["jpg", "jpeg", "png", "webp", "pdf"].contains(&extension.to_lowercase().as_str()) {
                     files.push(path);
                 }
             }
@@ -143,7 +190,7 @@ fn add_watermark(image_path: &Path, watermark_text: &str, output_path: &Path, co
     let text_color = Rgba([128u8, 128u8, 128u8, 150u8]);
 
     let mut long_watermark: String = String::from(watermark_text);
-    long_watermark.push_str("\t");
+    long_watermark.push('\t');
     long_watermark = long_watermark.repeat(canva.width() as usize / long_watermark.len());
 
     let space_y_u32 = space_y as u32;
