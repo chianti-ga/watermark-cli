@@ -21,13 +21,13 @@ Designed to prevent identity theft and unauthorized copying of official document
 
 ### Install from crates.io
 
-``` bash
+```bash
 cargo install watermark-cli
 ```
 
 ### Building from source
 
-``` bash
+```bash
 git clone https://github.com/chianti-ga/watermark-cli.git
 cd watermark-cli
 cargo build --release
@@ -35,24 +35,26 @@ cargo build --release
 
 ## Usage
 
-``` bash
-watermark-cli <INPUT_PATH> <WATERMARK> [OPTIONS]
+```bash
+watermark-cli <INPUT_PATH> <WATERMARK> [OPTIONS] <COMPRESSION>
 ```
 
 ### Arguments
 
 - `<INPUT_PATH>` - Path to the input image/pdf file or directory
 - `<WATERMARK>` - Text to use as watermark
+- `[COMPRESSION]` - JPEG compression quality (1-100) [default: 90]
 
 ### Options
 
+- `-o, --output-path <OUTPUT_PATH>` - Output directory (optional)
+- `-c, --color <COLOR>` - Watermark text color in hex (e.g. FF0000 for red) [default: 808080]
+- `-a, --opacity <OPACITY>` - Watermark opacity (0-255) [default: 150]
 - `-c, --compression <COMPRESSION>` - JPEG quality (1-100) [default: 90]
 - `-t, --text-scale <TEXT_SCALE>` - Watermark text scale [default: 0.05"]
 - `-s, --space-scale <SPACE_SCALE>` - Vertical spacing between watermarks [default: 1.5]
 - `-r, --recursive` - Recursively apply watermark to all images in the specified directory
-- `-p, --pattern <PATTERN>` - Pattern of
-  watermark [default: diagonal] [possible values: diagonal, horizontal, vertical, random, cross-diagonal] (NOT
-  IMPLEMENTED AT THE MOMENT)
+- `-p, --pattern <PATTERN>` - Pattern of watermark [default: diagonal][possible values: diagonal, horizontal, vertical, random, cross-diagonal] **(NOT IMPLEMENTED AT THE MOMENT)**
 - `-h, --help` - Print help
 - `-V, --version` - Print version
 
@@ -60,31 +62,31 @@ watermark-cli <INPUT_PATH> <WATERMARK> [OPTIONS]
 
 Apply a diagonal watermark to a single image:
 
-``` bash
+```bash
 watermark-cli sample.png "ONLY FOR IDENTITY VERIFICATION BY RENTAL AGENCY"
 ```
 
 | Original file                         | Watermarked file                                   |
-|---------------------------------------|----------------------------------------------------|
+| ------------------------------------- | -------------------------------------------------- |
 | ![Original file](exemples/sample.jpg) | ![Watermarked file](exemples/sample_watermark.jpg) |
 
-* Image from ANTS/France Titres (https://ants.gouv.fr/)
+- Image from ANTS/France Titres (https://ants.gouv.fr/)
 
 Customize watermark height/scale and compression:
 
-``` bash
+```bash
 watermark-cli --text-scale 2.0 path/to/image.jpg "SAMPLE"
 ```
 
 Process all images in a directory recursively with a custom pattern:
 
-``` bash
+```bash
 watermark-cli --recursive --pattern horizontal path/to/directory/ "Confidential"
 ```
 
 Customize watermark spacing and compression:
 
-``` bash
+```bash
 watermark-cli --space-scale 2.0 --compression 80 path/to/image.jpg "SAMPLE"
 ```
 
