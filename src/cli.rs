@@ -54,6 +54,18 @@ pub struct Cli {
     /// Watermark text
     pub watermark: String,
 
+    /// Output directory (optional)
+    #[arg(short, long, value_hint = clap::ValueHint::DirPath)]
+    pub output_path: Option<PathBuf>,
+
+    /// Watermark text color in hex (e.g., FF0000 for red)
+    #[arg(short, long, default_value = "808080")]
+    pub color: String,
+
+    /// Watermark opacity (0-255)
+    #[arg(short = 'a', long, default_value_t = 150)]
+    pub opacity: u8,
+
     /// JPEG quality 1–100
     #[arg(default_value_t = 90)]
     pub compression: u8,
@@ -91,13 +103,13 @@ struct Tag {
 }
 #[cfg(feature = "auto-update")]
 pub fn check_update() {
-    let config_file = std::env::home_dir().unwrap_or_default().join(".watermark-cli");
+    let config_file = std::env::home_dir()
+        .unwrap_or_default()
+        .join(".watermark-cli");
     if !config_file.exists() {
         println!("Would you like to enable automatic update checks? [Y/n]");
         let mut input = String::new();
-        std::io::stdin()
-            .read_line(&mut input)
-            .unwrap_or_default();
+        std::io::stdin().read_line(&mut input).unwrap_or_default();
         let enable_updates = input.trim().to_lowercase() != "n";
         fs::write(&config_file, if enable_updates { "1" } else { "0" }).unwrap_or_default();
     }
@@ -107,15 +119,20 @@ pub fn check_update() {
 
         match reqwest::blocking::Client::new()
             .get("https://api.github.com/repos/chianti-ga/watermark-cli/tags")
-            .header(reqwest::header::USER_AGENT, format!("watermark-cli/{}", current))
+            .header(
+                reqwest::header::USER_AGENT,
+                format!("watermark-cli/{}", current),
+            )
             .send()
             .and_then(|response| response.json::<Vec<Tag>>())
         {
             Ok(tags) => {
                 if let Some(latest_tag) = tags.first() {
                     if latest_tag.name != format!("v{current}") {
-                        println!("🎉 New version {} available! (Current version: v{})",
-                                 latest_tag.name, current);
+                        println!(
+                            "🎉 New version {} available! (Current version: v{})",
+                            latest_tag.name, current
+                        );
                     }
                 }
             }

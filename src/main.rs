@@ -1,19 +1,19 @@
 /*
- * Copyright (C) 2025  Chianti GALLY
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
+* Copyright (C) 2025  Chianti GALLY
+*
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
 mod cli;
 mod pdf;
 
@@ -53,31 +53,34 @@ fn main() {
     let start_time: Instant = Instant::now();
 
     if cli.recursive && cli.input_path.is_dir() {
-        process_directory(&cli, None);
+        let out_dir = cli.output_path.as_deref();
+        process_directory(&cli, out_dir);
     } else {
-        process_single_file(&cli);
+        let out_dir = cli.output_path.as_deref();
+        process_single_file(&cli, out_dir);
     }
 
     let duration: Duration = start_time.elapsed();
     println!("{}", format!("Processing completed in {:.2} seconds", duration.as_secs_f32()).green());
 }
 
-fn process_single_file(cli: &Cli) {
+fn process_single_file(cli: &Cli, output_dir: Option<&Path>) {
     let input_file: &PathBuf = &cli.input_path;
     let file_stem: &str = input_file.file_stem().and_then(|s| s.to_str()).unwrap_or("output");
     let extension: &str = input_file.extension().and_then(|s| s.to_str()).unwrap_or("jpeg");
 
-    if extension.to_lowercase() == "pdf" {
-        process_pdf(cli);
-        return;
-    }
-
     let new_name: String = format!("{}_watermark.{}", file_stem, extension);
-    let output_file: PathBuf = input_file.with_file_name(new_name);
+    let output_file: PathBuf = if let Some(dir) = output_dir {
+        dir.join(new_name)
+    } else {
+        input_file.with_file_name(new_name)
+    };
+
+    fs::create_dir_all(output_file.parent().unwrap()).unwrap();
 
     println!("{}", format!("Processing image: {}", input_file.display()).blue());
 
-    if let Err(e) = add_watermark(input_file, &cli.watermark, &output_file, &cli.compression, &cli.text_scale, &cli.space_scale) {
+    if let Err(e) = add_watermark(input_file, &cli.watermark, &output_file, &cli.compression, &cli.text_scale, &cli.space_scale, &cli.color, cli.opacity) {
         eprintln!("{}", format!("Error processing image: {}", e).red());
         std::process::exit(1);
     }
@@ -109,12 +112,16 @@ fn process_pdf(cli: &Cli) {
             text_scale: cli.text_scale,
             recursive: cli.recursive,
             pattern: cli.pattern.clone(),
+            output_path: Some(output_dir.clone()),
+            color: cli.color.clone(),
+            opacity: cli.opacity,
         },
         Some(output_dir.as_path()),
     );
 
     fs::remove_dir_all(&temp_dir).unwrap();
 }
+
 fn process_directory(cli: &Cli, output_dir: Option<&Path>) {
     let files: Vec<PathBuf> = collect_image_files(&cli.input_path);
     let total_files: usize = files.len();
@@ -142,7 +149,7 @@ fn process_directory(cli: &Cli, output_dir: Option<&Path>) {
             file.with_file_name(new_name)
         };
 
-        if let Err(e) = add_watermark(file, &cli.watermark, &output_file, &cli.compression, &cli.text_scale, &cli.space_scale) {
+        if let Err(e) = add_watermark(file, &cli.watermark, &output_file, &cli.compression, &cli.text_scale, &cli.space_scale, &cli.color, cli.opacity) {
             error!("{}", format!("Error processing {}: {}", file.display(), e).red());
         } else {
             info!("{}", format!("Image processed successfully: {}", output_file.display()).green());
@@ -170,7 +177,18 @@ fn collect_image_files(dir: &Path) -> Vec<PathBuf> {
     files
 }
 
-fn add_watermark(image_path: &Path, watermark_text: &str, output_path: &Path, compression: &u8, text_scale: &f32, space_scale: &f32) -> Result<(), Box<dyn Error>> {
+fn parse_color(hex: &str, alpha: u8) -> Result<Rgba<u8>, Box<dyn std::error::Error>> {
+    let hex = hex.trim_start_matches('#');
+    if hex.len() != 6 {
+        return Err("Color must be 6-digit hex".into());
+    }
+    let r = u8::from_str_radix(&hex[0..2], 16)?;
+    let g = u8::from_str_radix(&hex[2..4], 16)?;
+    let b = u8::from_str_radix(&hex[4..6], 16)?;
+    Ok(Rgba([r, g, b, alpha]))
+}
+
+fn add_watermark(image_path: &Path, watermark_text: &str, output_path: &Path, compression: &u8, text_scale: &f32, space_scale: &f32, color_hex: &str, opacity: u8) -> Result<(), Box<dyn Error>> {
     let mut img: DynamicImage = image::open(image_path)?;
     let img_height: u32 = img.height();
     let img_width: u32 = img.width();
@@ -187,7 +205,7 @@ fn add_watermark(image_path: &Path, watermark_text: &str, output_path: &Path, co
     let scale: f32 = if img_height as f32 * text_scale <= 0.0 { 0.05 } else { img_height as f32 * text_scale };
     let space_y: f32 = if scale * space_scale <= 1.0 { 1.0 } else { scale * space_scale };
 
-    let text_color = Rgba([128u8, 128u8, 128u8, 150u8]);
+    let text_color = parse_color(color_hex, opacity)?;
 
     let mut long_watermark: String = String::from(watermark_text);
     long_watermark.push('\t');
