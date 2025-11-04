@@ -88,6 +88,7 @@ fn process_single_file(cli: &Cli, output_dir: Option<&Path>) {
     println!("{}", format!("Image processed successfully: {}", output_file.display()).green());
 }
 
+#[allow(dead_code)]
 fn process_pdf(cli: &Cli) {
     let input_file: &PathBuf = &cli.input_path;
     let file_stem: &str = input_file.file_stem().and_then(|s| s.to_str()).unwrap_or("output");
@@ -212,21 +213,23 @@ fn add_watermark(image_path: &Path, watermark_text: &str, output_path: &Path, co
     long_watermark = long_watermark.repeat(canva.width() as usize / long_watermark.len());
 
     let space_y_u32 = space_y as u32;
-    let num_iterations = (canva.height() / space_y_u32) + 1;
-    for i in 0..num_iterations {
-        let y_pos = (i * space_y_u32) as i32;
-        if y_pos >= canva.height() as i32 {
-            break;
+    if space_y_u32 > 0 {
+        let num_iterations = (canva.height() / space_y_u32) + 1;
+        for i in 0..num_iterations {
+            let y_pos = (i * space_y_u32) as i32;
+            if y_pos >= canva.height() as i32 {
+                break;
+            }
+            draw_text_mut(
+                &mut canva,
+                text_color,
+                0,
+                y_pos,
+                scale,
+                &font,
+                &long_watermark,
+            );
         }
-        draw_text_mut(
-            &mut canva,
-            text_color,
-            0,
-            y_pos,
-            scale,
-            &font,
-            &long_watermark,
-        );
     }
 
     canva = rotate(&canva, ((canva.width() / 2) as f32, (canva.height() / 2) as f32), -45.0_f32.to_radians(), Interpolation::Nearest, Rgba([0, 0, 0, 0]));
