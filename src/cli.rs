@@ -100,7 +100,7 @@ pub struct Cli {
     #[arg(short = 'k', long)]
     pub threads: Option<usize>,
 
-    /// Input image file/directory
+    /// Path to the input image/pdf file or directory
     #[arg(value_hint = clap::ValueHint::FilePath)]
     pub input_path: PathBuf,
 }
