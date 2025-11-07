@@ -2,12 +2,10 @@
 name = "watermark-cli"
 description = "A command-line tool for adding watermarks to images with support for batch processing and various watermark patterns"
 version = "1.1.5"
-edition = "2024"
+edition = "2021"
 license = "GPL-3.0-only"
 repository = "https://github.com/chianti-ga/watermark-cli"
-exclude = [
-    "exemples/*"
-]
+exclude = ["exemples/*"]
 authors = ["Chianti GALLY"]
 keywords = ["watermark", "images", "pdf", "cli", "identity-theft"]
 categories = ["command-line-utilities"]
@@ -17,16 +15,34 @@ default = ["auto-update"]
 auto-update = []
 
 [dependencies]
-ab_glyph = "0.2.29"
+# CLI + UX
 clap = { version = "4.5.38", features = ["default", "unicode", "derive", "usage"] }
-imageproc = { version = "0.25.0", features = ["default", "rayon"] }
-rayon = "1.10.0"
-log = "0.4.27"
 indicatif = "0.18.0"
 colored = "3.0.0"
+log = "0.4.27"
+
+# Image stack
+image = { version = "0.25", default-features = false, features = ["jpeg","png","gif","bmp","tiff","webp","ico","hdr","dds"] }
+imageproc = { version = "0.25.0", features = ["default", "rayon"] }
+ab_glyph = "0.2.29"
+
+# Parallel CPU
+rayon = "1.10.0"
+
+# PDF (unchanged)
+hayro = { version = "0.4.0", features = ["default", "embed-fonts", "jpeg2000"] }
+
+# Networking + serde (unchanged)
 reqwest = { version = "0.12.18", features = ["json", "blocking"] }
 serde = { version = "1.0.219", features = ["derive"] }
-hayro = { version = "0.4.0", features = ["default", "embed-fonts", "jpeg2000"] }
+
+# GPU
+wgpu = "0.20"
+pollster = "0.3"
+
+bytemuck = { version = "1.14", features = ["derive"] }
+futures-intrusive = "0.5"
+dirs = "5" # used in cli's update check (safer than deprecated std::env::home_dir)
 
 [profile.dev]
 opt-level = 1
