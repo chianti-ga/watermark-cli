@@ -1,5 +1,5 @@
 pkgname=watermark-cli
-pkgver=1.1.1
+pkgver=1.2.0
 pkgrel=1
 pkgdesc="A command-line tool for adding watermarks to images and PDFs with support for batch processing and various watermark patterns.
 Designed to prevent identity theft and unauthorized copying of official documents through visible watermarking."
