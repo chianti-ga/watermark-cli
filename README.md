@@ -27,6 +27,13 @@ cargo install watermark-cli
 
 ### Building from source
 
+#### Windows
+
+`windows-sys` require some dll to build:
+```bash
+scoop install binutils
+```
+
 ``` bash
 git clone https://github.com/chianti-ga/watermark-cli.git
 cd watermark-cli
