@@ -1,18 +1,19 @@
 /*
- * Copyright (C) 2025  Chianti GALLY
+ *     watermark-cli, a command-line tool for adding watermarks to images and PDFs
+ *     Copyright (C) 2025-2026  Chianti GALLY
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ *     This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *     You should have received a copy of the GNU General Public License
+ *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 mod cli;
 mod pdf;
@@ -171,7 +172,7 @@ fn collect_image_files(dir: &Path) -> Vec<PathBuf> {
     files
 }
 
-fn add_watermark(image_path: &Path, cli:&Cli, output_file: &PathBuf) -> Result<(), Box<dyn Error>> {
+fn add_watermark(image_path: &Path, cli: &Cli, output_file: &PathBuf) -> Result<(), Box<dyn Error>> {
     let mut img: DynamicImage = image::open(image_path)?;
     let img_height: u32 = img.height();
     let img_width: u32 = img.width();
@@ -181,7 +182,7 @@ fn add_watermark(image_path: &Path, cli:&Cli, output_file: &PathBuf) -> Result<(
     }
 
     let font_data = include_bytes!("../assets/OpenSans-Regular.ttf");
-    let font: FontRef = FontRef::try_from_slice(font_data).unwrap();
+    let font: FontRef = FontRef::try_from_slice(font_data)?;
 
     let mut canva: ImageBuffer<Rgba<u8>, Vec<u8>> = ImageBuffer::new(img.width() * 2, img_height * 2);
 

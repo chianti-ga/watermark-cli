@@ -1,31 +1,32 @@
 /*
- * Copyright (C) 2025  Chianti GALLY
+ *     watermark-cli, a command-line tool for adding watermarks to images and PDFs
+ *     Copyright (C) 2025-2026  Chianti GALLY
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ *     This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *     You should have received a copy of the GNU General Public License
+ *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 use clap::Parser;
+use imageproc::image::Rgba;
 use serde::Deserialize;
 use std::fs;
 use std::path::PathBuf;
-use imageproc::image::Rgba;
 
 const LONG_ABOUT: &str = "\
 A command-line tool for adding watermarks to images with support for batch processing and various watermark patterns.
 Designed to prevent identity theft and unauthorized copying of official documents through visible watermarking.
 
 
-Copyright (C) 2025 Chianti GALLY
+Copyright (C) 2025-2026 Chianti GALLY
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -78,10 +79,6 @@ pub struct Cli {
     /// Color of the watermark, in RGBA format (128, 128, 128, 150 for exemple)
     #[arg(short = 'c', long, value_parser = parse_color, default_value = "128, 128, 128, 150")]
     pub color: Rgba<u8>,
-    
-    /// Use GPU
-    #[arg(short, long, action)]
-    pub gpu : bool
 }
 
 pub fn parse_color(s: &str) -> Result<Rgba<u8>, String> {
