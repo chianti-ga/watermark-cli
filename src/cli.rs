@@ -18,6 +18,7 @@ use clap::Parser;
 use serde::Deserialize;
 use std::fs;
 use std::path::PathBuf;
+use imageproc::image::Rgba;
 
 const LONG_ABOUT: &str = "\
 A command-line tool for adding watermarks to images with support for batch processing and various watermark patterns.
@@ -70,19 +71,33 @@ pub struct Cli {
     #[arg(short, long, action)]
     pub recursive: bool,
 
-    /// Pattern of watermark
-    #[arg(short, long, default_value = "diagonal")]
-    pub pattern: Pattern,
+    /// Orientation of the watermark in degrees (-45° default)
+    #[arg(short, long, default_value = "-45.0")]
+    pub orientation: f32,
+
+    /// Color of the watermark, in RGBA format (128, 128, 128, 150 for exemple)
+    #[arg(short = 'c', long, value_parser = parse_color, default_value = "128, 128, 128, 150")]
+    pub color: Rgba<u8>,
+    
+    /// Use GPU
+    #[arg(short, long, action)]
+    pub gpu : bool
 }
 
-#[derive(Debug, Clone, clap::ValueEnum)]
+pub fn parse_color(s: &str) -> Result<Rgba<u8>, String> {
+    let parts: Vec<&str> = s.split(',').collect();
+    if parts.len() != 4 {
+        return Err(format!("Expected 4 color components, got {}", parts.len()));
+    }
 
-pub enum Pattern {
-    Diagonal,
-    Horizontal,
-    Vertical,
-    Random,
-    CrossDiagonal,
+    let mut color = [0u8; 4];
+    for (i, part) in parts.iter().enumerate() {
+        match part.trim().parse::<u8>() {
+            Ok(val) => color[i] = val,
+            Err(_) => return Err(format!("Invalid color component: {}", part))
+        }
+    }
+    Ok(Rgba([color[0], color[1], color[2], color[3]]))
 }
 
 #[derive(Deserialize, Debug)]
