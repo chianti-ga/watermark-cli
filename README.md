@@ -7,11 +7,11 @@ Designed to prevent identity theft and unauthorized copying of official document
 
 ## Features
 
-- Apply text watermarks to images in various patterns (diagonal, horizontal, vertical, random, cross-diagonal) (PDF
-  support is planned for future releases but not currently implemented)
+- Apply text watermarks with specific rotation.
+- PDF as input is supported
 - Process single images or recursively process directories
 - Parallel processing for batch operations using Rayon
-- Customizable watermark spacing and JPEG compression quality
+- Customizable watermark color and spacing and JPEG compression quality
 
 ## Installation
 
