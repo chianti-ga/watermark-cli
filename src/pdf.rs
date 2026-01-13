@@ -16,9 +16,8 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-use hayro::hayro_interpret::InterpreterSettings;
-use hayro::hayro_syntax::Pdf;
-use hayro::{render, RenderSettings};
+
+use hayro::{render, InterpreterSettings, Pdf, RenderSettings};
 use std::path::Path;
 use std::sync::Arc;
 
@@ -39,6 +38,6 @@ pub fn convert_to_image(pdf_path: &Path, output_dir: &Path) {
     for (idx, page) in pdf.pages().iter().enumerate() {
         let pixmap = render(page, &interpreter_settings, &render_settings);
         let output_path = format!("{}/rendered_{idx}.png", output_dir.to_str().unwrap());
-        std::fs::write(output_path, pixmap.into_png()).unwrap();
+        std::fs::write(output_path, pixmap.take_png()).unwrap();
     }
 }

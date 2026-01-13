@@ -109,8 +109,7 @@ fn process_pdf(cli: &Cli) {
             text_scale: cli.text_scale,
             recursive: cli.recursive,
             orientation: cli.orientation,
-            color: cli.color,
-            gpu: cli.gpu,
+            color: cli.color
         },
         Some(output_dir.as_path()),
     );
