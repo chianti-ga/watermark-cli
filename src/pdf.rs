@@ -17,10 +17,14 @@
  */
 
 
+use colored::Colorize;
 use hayro::hayro_interpret::InterpreterSettings;
 use hayro::hayro_syntax::Pdf;
 use hayro::vello_cpu::color::palette::css::WHITE;
 use hayro::{render, RenderCache, RenderSettings};
+use indicatif::{ProgressBar, ProgressStyle};
+use rayon::iter::IntoParallelRefIterator;
+use rayon::iter::ParallelIterator;
 use std::path::Path;
 use std::sync::Arc;
 
@@ -39,9 +43,18 @@ pub fn convert_to_image(pdf_path: &Path, output_dir: &Path) {
         ..Default::default()
     };
 
-    for (idx, page) in pdf.pages().iter().enumerate() {
+    let pb: ProgressBar = ProgressBar::new(pdf.pages().len() as u64);
+    pb.set_style(ProgressStyle::default_bar()
+        .template("{spinner:.green} [{bar:40.cyan/blue}] {pos}/{len} ({percent}%) {msg}")
+        .unwrap()
+        .progress_chars("#>-"));
+
+    pdf.pages().par_iter().for_each(|page| {
+        let pos: u64 = pb.position();
         let pixmap = render(page, &RenderCache::new(), &interpreter_settings, &render_settings);
-        let output_path = format!("{}/rendered_{idx}.png", output_dir.to_str().unwrap());
+        let output_path = format!("{}/rendered_{pos}.png", output_dir.to_str().unwrap());
         std::fs::write(output_path, pixmap.into_png().unwrap()).unwrap();
-    }
+        pb.inc(1)
+    });
+    pb.finish_with_message(format!("{}", "PDF pages rendering completed!".green()));
 }

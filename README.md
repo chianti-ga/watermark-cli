@@ -53,6 +53,7 @@ watermark-cli <INPUT_PATH> <WATERMARK> [OPTIONS]
 
 ### Options
 
+- `-q, --quality <JPEG QUALITY>` - JPEG quality 1–100 [default: 90]
 - `-s, --space-scale <SPACE_SCALE>` - Vertical spacing between watermarks [default: 1.5]
 - `-t, --text-scale <TEXT_SCALE>` - Watermark text scale [default: 0.05"]
 - `-r, --recursive` - Recursively apply watermark to all images in the specified directory
