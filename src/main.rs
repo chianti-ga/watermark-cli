@@ -188,16 +188,16 @@ fn add_watermark(image_path: &Path, cli: &Cli, output_file: &PathBuf) -> Result<
     let scale: f32 = if img_height as f32 * cli.text_scale <= 0.0 { 0.05 } else { img_height as f32 * cli.text_scale };
     let space_y: f32 = if scale * cli.space_scale <= 1.0 { 1.0 } else { scale * cli.space_scale };
 
-    let text_color = cli.color;
+    let text_color: Rgba<u8> = cli.color;
 
     let mut long_watermark: String = String::from(&cli.watermark);
     long_watermark.push('\t');
     long_watermark = long_watermark.repeat(canva.width() as usize / long_watermark.len());
 
-    let space_y_u32 = space_y as u32;
-    let num_iterations = (canva.height() / space_y_u32) + 1;
+    let space_y_u32: u32 = space_y as u32;
+    let num_iterations: u32 = (canva.height() / space_y_u32) + 1;
     for i in 0..num_iterations {
-        let y_pos = (i * space_y_u32) as i32;
+        let y_pos: i32 = (i * space_y_u32) as i32;
         if y_pos >= canva.height() as i32 {
             break;
         }
