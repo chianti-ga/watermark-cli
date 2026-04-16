@@ -53,10 +53,10 @@ watermark-cli <INPUT_PATH> <WATERMARK> [OPTIONS]
 
 ### Options
 
-- `-c, --compression <COMPRESSION>` - JPEG quality (1-100) [default: 90]
-- `-t, --text-scale <TEXT_SCALE>` - Watermark text scale [default: 0.05"]
 - `-s, --space-scale <SPACE_SCALE>` - Vertical spacing between watermarks [default: 1.5]
+- `-t, --text-scale <TEXT_SCALE>` - Watermark text scale [default: 0.05"]
 - `-r, --recursive` - Recursively apply watermark to all images in the specified directory
+- `-c, --color <COMPRESSION>` - Color for the watermark text [default: "128, 128, 128, 150"]
 - `-p, --pattern <PATTERN>` - Pattern of
   watermark [default: diagonal] [possible values: diagonal, horizontal, vertical, random, cross-diagonal] (NOT
   IMPLEMENTED AT THE MOMENT)
