@@ -57,8 +57,8 @@ pub struct Cli {
     pub watermark: String,
 
     /// JPEG quality 1–100
-    #[arg(default_value_t = 90)]
-    pub compression: u8,
+    #[arg(default_value_t = 90, short, long)]
+    pub quality: u8,
 
     /// Vertical spacing between watermark
     #[arg(default_value = "1.5", short, long)]
@@ -110,7 +110,7 @@ pub fn check_update() {
         std::io::stdin()
             .read_line(&mut input)
             .unwrap_or_default();
-        let enable_updates = input.trim().to_lowercase() != "n";
+        let enable_updates: bool = input.trim().to_lowercase() != "n";
         fs::write(&config_file, if enable_updates { "1" } else { "0" }).unwrap_or_default();
     }
 

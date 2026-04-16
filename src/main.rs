@@ -92,7 +92,7 @@ fn process_pdf(cli: &Cli) {
     let temp_dir: PathBuf = std::env::temp_dir().join("watermark-cli").join(format!("{}_{}", file_stem, extension));
     fs::create_dir_all(&temp_dir).unwrap();
 
-    println!("{}", format!("Processing PDF: {}", input_file.display()).blue());
+    println!("{}", format!("Rendering PDF pages: {}", input_file.display()).blue());
 
     convert_to_image(input_file, &temp_dir);
 
@@ -104,7 +104,7 @@ fn process_pdf(cli: &Cli) {
         &Cli {
             input_path: temp_dir.clone(),
             watermark: cli.watermark.clone(),
-            compression: cli.compression,
+            quality: cli.quality,
             space_scale: cli.space_scale,
             text_scale: cli.text_scale,
             recursive: cli.recursive,
@@ -194,10 +194,9 @@ fn add_watermark(image_path: &Path, cli: &Cli, output_file: &PathBuf) -> Result<
     long_watermark.push('\t');
     long_watermark = long_watermark.repeat(canva.width() as usize / long_watermark.len());
 
-    let space_y_u32: u32 = space_y as u32;
-    let num_iterations: u32 = (canva.height() / space_y_u32) + 1;
+    let num_iterations: u32 = (canva.height() / space_y as u32) + 1;
     for i in 0..num_iterations {
-        let y_pos: i32 = (i * space_y_u32) as i32;
+        let y_pos: i32 = (i * space_y as u32) as i32;
         if y_pos >= canva.height() as i32 {
             break;
         }
@@ -218,12 +217,12 @@ fn add_watermark(image_path: &Path, cli: &Cli, output_file: &PathBuf) -> Result<
 
     let mut writer: BufWriter<File> = BufWriter::new(File::create(output_file)?);
     match image_path.extension().and_then(|e| e.to_str()) {
-        Some("jpg") | Some("jpeg") => img.write_with_encoder(JpegEncoder::new_with_quality(&mut writer, cli.compression))?,
+        Some("jpg") | Some("jpeg") => img.write_with_encoder(JpegEncoder::new_with_quality(&mut writer, cli.quality))?,
         Some("png") => img.write_with_encoder(PngEncoder::new(&mut writer))?,
         Some("webp") => {
             img.write_with_encoder(WebPEncoder::new_lossless(&mut writer))?
         }
-        _ => img.write_with_encoder(JpegEncoder::new_with_quality(&mut writer, cli.compression))?,
+        _ => img.write_with_encoder(JpegEncoder::new_with_quality(&mut writer, cli.quality))?,
     };
     Ok(())
 }
