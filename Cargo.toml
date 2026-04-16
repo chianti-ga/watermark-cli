@@ -18,16 +18,16 @@ auto-update = []
 
 [dependencies]
 ab_glyph = "0.2.29"
-clap = { version = "4.5.38", features = ["default", "unicode", "derive", "usage"] }
-imageproc = { version = "0.26.0", features = ["default", "rayon"] }
-rayon = "1.10.0"
+clap = { version = "4.6.1", features = ["default", "unicode", "derive", "usage"] }
+imageproc = { version = "0.26.1", features = ["default", "rayon"] }
+rayon = "1.12.0"
 log = "0.4.27"
-indicatif = "0.18.0"
-colored = "3.0.0"
-reqwest = { version = "0.13.1", features = ["json", "blocking"] }
+indicatif = "0.18.4"
+colored = "3.1.1"
+reqwest = { version = "0.13.2", features = ["json", "blocking"] }
 serde = { version = "1.0.219", features = ["derive"] }
-hayro = { version = "0.4.0", features = ["default", "embed-fonts"] }
-image = "0.25.9"
+hayro = { version = "0.6.0", features = ["default", "embed-fonts"] }
+image = "0.25.10"
 
 [profile.dev]
 opt-level = 1
