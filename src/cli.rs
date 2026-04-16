@@ -87,7 +87,7 @@ pub fn parse_color(s: &str) -> Result<Rgba<u8>, String> {
         return Err(format!("Expected 4 color components, got {}", parts.len()));
     }
 
-    let mut color = [0u8; 4];
+    let mut color: [u8; 4] = [0u8; 4];
     for (i, part) in parts.iter().enumerate() {
         match part.trim().parse::<u8>() {
             Ok(val) => color[i] = val,
@@ -103,10 +103,10 @@ struct Tag {
 }
 #[cfg(feature = "auto-update")]
 pub fn check_update() {
-    let config_file = std::env::home_dir().unwrap_or_default().join(".watermark-cli");
+    let config_file: PathBuf = std::env::home_dir().unwrap_or_default().join(".watermark-cli");
     if !config_file.exists() {
         println!("Would you like to enable automatic update checks? [Y/n]");
-        let mut input = String::new();
+        let mut input: String = String::new();
         std::io::stdin()
             .read_line(&mut input)
             .unwrap_or_default();
@@ -115,7 +115,7 @@ pub fn check_update() {
     }
 
     if fs::read_to_string(&config_file).unwrap_or_default().trim() == "1" {
-        let current = env!("CARGO_PKG_VERSION");
+        let current: &str = env!("CARGO_PKG_VERSION");
 
         match reqwest::blocking::Client::new()
             .get("https://api.github.com/repos/chianti-ga/watermark-cli/tags")

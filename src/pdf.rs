@@ -17,27 +17,31 @@
  */
 
 
-use hayro::{render, InterpreterSettings, Pdf, RenderSettings};
+use hayro::hayro_interpret::InterpreterSettings;
+use hayro::hayro_syntax::Pdf;
+use hayro::vello_cpu::color::palette::css::WHITE;
+use hayro::{render, RenderCache, RenderSettings};
 use std::path::Path;
 use std::sync::Arc;
 
 pub fn convert_to_image(pdf_path: &Path, output_dir: &Path) {
-    let file = std::fs::read(pdf_path).unwrap();
+    let file: Vec<u8> = std::fs::read(pdf_path).unwrap();
 
-    let data = Arc::new(file);
-    let pdf = Pdf::new(data).unwrap();
+    let data: Arc<Vec<u8>> = Arc::new(file);
+    let pdf: Pdf = Pdf::new(data).unwrap();
 
     let interpreter_settings = InterpreterSettings::default();
 
     let render_settings = RenderSettings {
         x_scale: 2.0,
         y_scale: 2.0,
+        bg_color: WHITE,
         ..Default::default()
     };
 
     for (idx, page) in pdf.pages().iter().enumerate() {
-        let pixmap = render(page, &interpreter_settings, &render_settings);
+        let pixmap = render(page, &RenderCache::new(), &interpreter_settings, &render_settings);
         let output_path = format!("{}/rendered_{idx}.png", output_dir.to_str().unwrap());
-        std::fs::write(output_path, pixmap.take_png()).unwrap();
+        std::fs::write(output_path, pixmap.into_png().unwrap()).unwrap();
     }
 }
