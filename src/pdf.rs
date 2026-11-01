@@ -23,8 +23,7 @@ use hayro::hayro_syntax::Pdf;
 use hayro::vello_cpu::color::palette::css::WHITE;
 use hayro::{render, RenderCache, RenderSettings};
 use indicatif::{ProgressBar, ProgressStyle};
-use rayon::iter::IntoParallelRefIterator;
-use rayon::iter::ParallelIterator;
+use rayon::iter::{IndexedParallelIterator, IntoParallelRefIterator, ParallelIterator};
 use std::path::Path;
 use std::sync::Arc;
 
@@ -49,10 +48,9 @@ pub fn convert_to_image(pdf_path: &Path, output_dir: &Path) {
         .unwrap()
         .progress_chars("#>-"));
 
-    pdf.pages().par_iter().for_each(|page| {
-        let pos: u64 = pb.position();
+    pdf.pages().par_iter().enumerate().for_each(|(index, page)| {
         let pixmap = render(page, &RenderCache::new(), &interpreter_settings, &render_settings);
-        let output_path = format!("{}/rendered_{pos}.png", output_dir.to_str().unwrap());
+        let output_path = format!("{}/rendered_{index}.png", output_dir.to_str().unwrap());
         std::fs::write(output_path, pixmap.into_png().unwrap()).unwrap();
         pb.inc(1)
     });
