@@ -25,14 +25,14 @@ use crate::pdf::convert_to_image;
 use ab_glyph::FontRef;
 use clap::Parser;
 use colored::Colorize;
-use image::{DynamicImage, ImageBuffer, Rgba};
+use image::{DynamicImage, ImageBuffer, Rgba, RgbaImage};
 use imageproc::drawing::draw_text_mut;
 use imageproc::geometric_transformations::{rotate, Interpolation};
 use imageproc::image;
 use imageproc::image::codecs::jpeg::JpegEncoder;
 use imageproc::image::codecs::png::PngEncoder;
 use imageproc::image::codecs::webp::WebPEncoder;
-use imageproc::image::imageops::overlay;
+use imageproc::image::imageops::{overlay, blur};
 use indicatif::{ProgressBar, ProgressStyle};
 use log::{error, info};
 use rayon::iter::IntoParallelRefIterator;
@@ -107,9 +107,11 @@ fn process_pdf(cli: &Cli) {
             quality: cli.quality,
             space_scale: cli.space_scale,
             text_scale: cli.text_scale,
+            warp_scale: cli.warp_scale,
+            blur_sigma: cli.blur_sigma,
             recursive: cli.recursive,
             orientation: cli.orientation,
-            color: cli.color,
+            color: cli.color.clone(),
         },
         Some(output_dir.as_path()),
     );
@@ -188,30 +190,54 @@ fn add_watermark(image_path: &Path, cli: &Cli, output_file: &PathBuf) -> Result<
     let scale: f32 = if img_height as f32 * cli.text_scale <= 0.0 { 0.05 } else { img_height as f32 * cli.text_scale };
     let space_y: f32 = if scale * cli.space_scale <= 1.0 { 1.0 } else { scale * cli.space_scale };
 
-    let text_color: Rgba<u8> = cli.color;
+    let text_colors: &Vec<Rgba<u8>> = &cli.color;
 
     let mut long_watermark: String = String::from(&cli.watermark);
     long_watermark.push('\t');
     long_watermark = long_watermark.repeat(canva.width() as usize / long_watermark.len());
 
     let num_iterations: u32 = (canva.height() / space_y as u32) + 1;
-    for i in 0..num_iterations {
-        let y_pos: i32 = (i * space_y as u32) as i32;
-        if y_pos >= canva.height() as i32 {
-            break;
+    for (j, text_color) in text_colors.iter().enumerate() {
+
+        let mut rows: ImageBuffer<Rgba<u8>, Vec<u8>> = ImageBuffer::new(img.width() * 2, img_height * 2);
+
+        for i in (j as u32..num_iterations).step_by(text_colors.len()) {
+            let y_pos = (i * space_y as u32) as i32;
+            if y_pos >= canva.height() as i32 {
+                break;
+            }
+
+            draw_text_mut(
+                &mut rows,
+                *text_color,
+                0,
+                y_pos,
+                scale,
+                &font,
+                &long_watermark,
+            );
         }
-        draw_text_mut(
-            &mut canva,
-            text_color,
-            0,
-            y_pos,
-            scale,
-            &font,
-            &long_watermark,
-        );
+
+        let warped;
+        if cli.warp_scale > 0.0 {
+            let amplitude = cli.warp_scale * scale * (0.15 + 0.1 * (j as f32 % 4.0));
+            let wavelength = cli.warp_scale * scale * (20.0 + 2.0 * (j as f32 % 3.0));
+            let phase = j as f32 * 0.7;
+
+            warped = warp_rows(&rows, amplitude, wavelength, phase);
+        } else {
+            warped = rows;
+        }
+
+        overlay(&mut canva, &warped, 0, 0);
     }
 
     canva = rotate(&canva, ((canva.width() / 2) as f32, (canva.height() / 2) as f32), cli.orientation.to_radians(), Interpolation::Nearest, Rgba([0, 0, 0, 0]));
+
+    if cli.blur_sigma > 0.0 {
+        let blurred = blur(&canva, cli.blur_sigma);
+        overlay(&mut img, &blurred, -((img_width / 2) as i64), -((img_height / 2) as i64));
+    }
 
     overlay(&mut img, &canva, -((img_width / 2) as i64), -((img_height / 2) as i64));
 
@@ -225,4 +251,23 @@ fn add_watermark(image_path: &Path, cli: &Cli, output_file: &PathBuf) -> Result<
         _ => img.write_with_encoder(JpegEncoder::new_with_quality(&mut writer, cli.quality))?,
     };
     Ok(())
+}
+
+fn warp_rows(src: &RgbaImage, amplitude: f32, wavelength: f32, phase: f32) -> RgbaImage {
+    let (width, height) = src.dimensions();
+    let mut dst = RgbaImage::from_pixel(width, height, Rgba([0, 0, 0, 0]));
+
+    for x in 0..width {
+        let offset = amplitude
+            * (std::f32::consts::TAU * x as f32 / wavelength + phase).sin();
+
+        for y in 0..height {
+            let src_y = (y as f32 - offset).round() as i32;
+            if (0..height as i32).contains(&src_y) {
+                dst.put_pixel(x, y, *src.get_pixel(x, src_y as u32));
+            }
+        }
+    }
+
+    dst
 }

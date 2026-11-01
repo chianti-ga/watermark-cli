@@ -68,6 +68,14 @@ pub struct Cli {
     #[arg(default_value = "0.05", short, long)]
     pub text_scale: f32,
 
+    /// Watermark warp scale
+    #[arg(default_value = "0.05", short, long)]
+    pub warp_scale: f32,
+
+    /// Watermark blur pixel width (ex: 5.0)
+    #[arg(short, long, default_value = "0.0")]
+    pub blur_sigma: f32,
+
     /// Recursively apply watermark to all images in the specified directory
     #[arg(short, long, action)]
     pub recursive: bool,
@@ -76,9 +84,9 @@ pub struct Cli {
     #[arg(short, long, default_value = "-45.0")]
     pub orientation: f32,
 
-    /// Color of the watermark, in RGBA format (128, 128, 128, 150 for exemple)
+    /// Colors of the watermark, in RGBA format (128, 128, 128, 150 for exemple)
     #[arg(short = 'c', long, value_parser = parse_color, default_value = "128, 128, 128, 150")]
-    pub color: Rgba<u8>,
+    pub color: Vec<Rgba<u8>>,
 }
 
 pub fn parse_color(s: &str) -> Result<Rgba<u8>, String> {
